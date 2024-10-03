@@ -35,7 +35,7 @@ async function createUserAdmin(req, res) {
   return res.status(200).json({
     code: 200,
     message: "Usuario creado exitosamente",
-    token,
+    ApikEY: apiki
   });
 }
 
@@ -57,7 +57,7 @@ async function createUser(req, res) {
   return res.status(200).json({
     code: 200,
     message: "Usuario creado exitosamente",
-    token,
+    ApikEY: apiki
   });
 }
 

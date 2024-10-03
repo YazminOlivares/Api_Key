@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+/*const jwt = require('jsonwebtoken');
 const JW_SECRET = require('../controllers/authController').JW_SECRET;
 
 function authenticationToken( req, res, netx ){
@@ -24,4 +24,4 @@ function authenticationToken( req, res, netx ){
     });
 }
 
-module.exports = authenticationToken;
+module.exports = authenticationToken;*/

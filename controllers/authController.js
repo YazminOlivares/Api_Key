@@ -1,33 +1,72 @@
 const userModel = require("../models/userModel");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
+const { generateApiKey } = require("generate-api-key");
 
-const JWT_SECRET = "claveSecreta";
-const JWT_EXPIRES_IN = "30s";
 
 async function login(req, res) {
-  const { username, password } = req.body;
-  const user = userModel.getUserByUsername(username);
-  if (!user)
-    return res
-      .status(403)
-      .json({ code: 403, message: "Usuario no encontrado" });
+  const { username, password, apiKey } = req.body;
 
-  const isValid = await bcrypt.compare(password, user.password);
-  if (!isValid)
-    return res
-      .status(403)
-      .json({ code: 403, message: "Contraseña incorrecta" });
+  if(!toString(username).split(' ') || !password.split(' ')) return res.status(403).json({ code: 403, message: "Usuario o contraseña vacio" });
 
-  const token = jwt.sign({ username: user.username }, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN,
-  });
-
+  if (apikiCorrecta(username, apiKey)) return res.status(403).json({ code: 403, message: "Api Key incorrecta" }); 
+  
   return res.status(200).json({
     code: 200,
     message: "Inicio de sesión exitoso",
+    apiKey
+  });
+}
+
+async function createUserAdmin(req, res) {
+  const { username, password } = req.body;
+
+  if(!toString(username).split(' ') || !password.split(' ')) return res.status(403).json({ code: 403, message: "Usuario o contraseña vacio" });
+  if (existsUsername(username)) return res.status(403).json({ code: 403, message: "Este usuario ya existe" });
+  
+  const apiki = generateApiKey({
+    method: 'uuidv5',
+    name: username,
+    dashes: true,
+    prefix: 'admin',
+    batch: 1
+  });
+
+  userModel.users.push({username, password, apiki});
+  
+  return res.status(200).json({
+    code: 200,
+    message: "Usuario creado exitosamente",
     token,
   });
 }
 
-module.exports = { login, JWT_SECRET };
+async function createUser(req, res) {
+  const { username, password } = req.body;
+
+  if(!toString(username).split(' ') || !password.split(' ')) return res.status(403).json({ code: 403, message: "Usuario o contraseña vacio" });
+  if (existsUsername(username)) return res.status(403).json({ code: 403, message: "Este usuario ya existe" });
+  
+  const apiki = generateApiKey({
+    method: 'uuidv5',
+    name: username,
+    dashes: true,
+    batch: 1
+  });
+
+  userModel.users.push({username, password, apiki});
+  
+  return res.status(200).json({
+    code: 200,
+    message: "Usuario creado exitosamente",
+    token,
+  });
+}
+
+function existsUsername(users, username) {
+  return userModel.users.some(user => user.username === username);
+}
+
+function apikiCorrecta(users, apiki) {
+  return userModel.users.some(user => user.apikey ==apiki);
+}
+
+module.exports = { login, createUserAdmin, createUser, apikiCorrecta };
